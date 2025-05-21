@@ -13,7 +13,11 @@
 #include <cstdint>
 #include <cstring>
 #include <fcntl.h>
-#include <unistd.h>
+#ifdef _WIN32
+#include <io.h> // For _access, _read, etc.
+#else
+#include <unistd.h> // For read, access, etc.
+#endif
 #include <errno.h>
 #include <vector>
 

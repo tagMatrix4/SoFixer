@@ -46,19 +46,26 @@ public:
     const char* getSource() {
         return source;
     }
-    size_t Read(void *addr, size_t len, int offset = -1) {
+    size_t Read(void *addr, size_t len, long long offset = -1) {
         if (offset >= 0) {
             fseek(fp, offset, SEEK_SET);
         }
+#ifdef _MSC_VER
+        auto rc = fread(addr, 1, len, fp);
+#else
         auto rc = TEMP_FAILURE_RETRY(fread(addr, 1, len, fp));
+#endif
 
-        if (rc < 0) {
+        if (rc == 0 && ferror(fp)) { // Check for actual read error
             FLOGE("can't read file \"%s\": %s", source, strerror(errno));
-            return rc;
+            return -1; // Indicate error explicitly if possible, or stick to size_t context
         }
-        if (rc != len) {
-            FLOGE("\"%s\" has no enough data at %x:%zx, not a valid file or you need to dump more data", source, offset, len);
-            return rc;
+        // fread returns number of items read. If it's less than len, it could be EOF or error.
+        if (rc != len && !feof(fp)) { 
+            FLOGE("\"%s\" has no enough data at %x:%zx, or read error. Read %zu, expected %zu", source, offset, len, rc, len);
+            // Return rc as it's the number of bytes successfully read
+        } else if (rc != len && feof(fp)) {
+            FLOGE("\"%s\" hit EOF. Read %zu, expected %zu at %x:%zx", source, rc, len, offset, len);
         }
         return rc;
     }

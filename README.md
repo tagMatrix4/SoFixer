@@ -1,6 +1,14 @@
 # SoFixer
 用于修复从内存中 dump 下来的So文件。
 ## Build
+
+```shell
+%comspec% /k "C:\Program Files\Microsoft Visual Studio\2022\Preview\Common7\Tools\VsDevCmd.bat"
+cmake -G "Visual Studio 17 2022" -A x64 -DSO_64=ON ..
+cmake --build . --config Release
+```
+
+
 ```shell
 mkdir build
 # 参数 -DSO_64=ON 用于修复64位so文件，不添加则为修复32位so文件

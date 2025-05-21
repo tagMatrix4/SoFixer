@@ -51,12 +51,18 @@ typedef Elf64_Word Elf_Word;
 #endif
 
 #ifndef TEMP_FAILURE_RETRY
+#ifdef _MSC_VER
+// MSVC doesn't typically have issues with EINTR for fread, and doesn't support GCC statement expressions.
+// So, we simplify the macro for MSVC.
+#define TEMP_FAILURE_RETRY(expression) (expression)
+#else
 #define TEMP_FAILURE_RETRY(expression) \
   (__extension__\
    ({ long int __result;\
        do __result = (long int)(expression);\
        while(__result == -1L&& errno == EINTR);\
-       __result;}))
+       __result;}));
+#endif // _MSC_VER
 #endif
 
 
