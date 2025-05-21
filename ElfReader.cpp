@@ -271,7 +271,7 @@ bool ElfReader::ReserveAddressSpace(uint32_t padding_size) {
     }
     pad_size_ = padding_size;
 
-    uint32_t alloc_size = load_size_ + pad_size_;
+    size_t alloc_size = load_size_ + pad_size_;
 
     uint8_t* addr = reinterpret_cast<uint8_t*>(min_vaddr);
     // alloc map data, and load in addr

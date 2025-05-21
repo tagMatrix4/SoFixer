@@ -26,7 +26,7 @@ void useage();
 
 
 bool main_loop(int argc, char* argv[]) {
-    int c;
+    // int c; // Variable 'c' is unused due to getopt removal
 
     ObElfReader elf_reader;
 

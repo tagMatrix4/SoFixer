@@ -48,7 +48,7 @@ public:
     }
     size_t Read(void *addr, size_t len, long long offset = -1) {
         if (offset >= 0) {
-            fseek(fp, offset, SEEK_SET);
+            fseek(fp, static_cast<long>(offset), SEEK_SET);
         }
 #ifdef _MSC_VER
         auto rc = fread(addr, 1, len, fp);
@@ -62,10 +62,10 @@ public:
         }
         // fread returns number of items read. If it's less than len, it could be EOF or error.
         if (rc != len && !feof(fp)) { 
-            FLOGE("\"%s\" has no enough data at %x:%zx, or read error. Read %zu, expected %zu", source, offset, len, rc, len);
+            FLOGE("\"%s\" has no enough data at %llx:%zx, or read error. Read %zu, expected %zu", source, offset, len, rc, len);
             // Return rc as it's the number of bytes successfully read
         } else if (rc != len && feof(fp)) {
-            FLOGE("\"%s\" hit EOF. Read %zu, expected %zu at %x:%zx", source, rc, len, offset, len);
+            FLOGE("\"%s\" hit EOF. Read %zu, expected %zu at %llx:%zx", source, rc, len, offset, len);
         }
         return rc;
     }

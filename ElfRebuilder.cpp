@@ -55,7 +55,10 @@ bool ElfRebuilder::RebuildShdr() {
         sDYNSYM = shdrs.size();
 
         Elf_Shdr shdr;
-        shdr.sh_name = shstrtab.length();
+#ifdef _MSC_VER
+#pragma warning(suppress: 4267) // C4267: conversion from 'size_t' to 'Elf_Word', possible loss of data
+#endif
+        shdr.sh_name = static_cast<Elf_Word>(shstrtab.length());
         shstrtab.append(".dynsym");
         shstrtab.push_back('\0');
 
@@ -83,7 +86,10 @@ bool ElfRebuilder::RebuildShdr() {
         sDYNSTR = shdrs.size();
 
         Elf_Shdr shdr;
-        shdr.sh_name = shstrtab.length();
+#ifdef _MSC_VER
+#pragma warning(suppress: 4267)
+#endif
+        shdr.sh_name = static_cast<Elf_Word>(shstrtab.length());
         shstrtab.append(".dynstr");
         shstrtab.push_back('\0');
 
@@ -105,7 +111,10 @@ bool ElfRebuilder::RebuildShdr() {
         sHASH = shdrs.size();
 
         Elf_Shdr shdr;
-        shdr.sh_name = shstrtab.length();
+#ifdef _MSC_VER
+#pragma warning(suppress: 4267)
+#endif
+        shdr.sh_name = static_cast<Elf_Word>(shstrtab.length());
         shstrtab.append(".hash");
         shstrtab.push_back('\0');
 
@@ -128,7 +137,10 @@ bool ElfRebuilder::RebuildShdr() {
         sRELDYN = shdrs.size();
 
         Elf_Shdr shdr;
-        shdr.sh_name = shstrtab.length();
+#ifdef _MSC_VER
+#pragma warning(suppress: 4267)
+#endif
+        shdr.sh_name = static_cast<Elf_Word>(shstrtab.length());
         shstrtab.append(".rel.dyn");
         shstrtab.push_back('\0');
 
@@ -153,7 +165,10 @@ bool ElfRebuilder::RebuildShdr() {
     if (si.plt_rela != nullptr) {
         sRELADYN = shdrs.size();
         Elf_Shdr shdr;
-        shdr.sh_name = shstrtab.length();
+#ifdef _MSC_VER
+#pragma warning(suppress: 4267)
+#endif
+        shdr.sh_name = static_cast<Elf_Word>(shstrtab.length());
         shstrtab.append(".rela.dyn");
         shstrtab.push_back('\0');
         shdr.sh_type = SHT_RELA;
@@ -176,7 +191,10 @@ bool ElfRebuilder::RebuildShdr() {
         sRELPLT = shdrs.size();
 
         Elf_Shdr shdr;
-        shdr.sh_name = shstrtab.length();
+#ifdef _MSC_VER
+#pragma warning(suppress: 4267)
+#endif
+        shdr.sh_name = static_cast<Elf_Word>(shstrtab.length());
         if (si.plt_type == DT_REL){
             shstrtab.append(".rel.plt");
         } else {
@@ -211,7 +229,10 @@ bool ElfRebuilder::RebuildShdr() {
         sPLT = shdrs.size();
 
         Elf_Shdr shdr;
-        shdr.sh_name = shstrtab.length();
+#ifdef _MSC_VER
+#pragma warning(suppress: 4267)
+#endif
+        shdr.sh_name = static_cast<Elf_Word>(shstrtab.length());
         shstrtab.append(".plt");
         shstrtab.push_back('\0');
 
@@ -234,7 +255,10 @@ bool ElfRebuilder::RebuildShdr() {
         sTEXTTAB = shdrs.size();
 
         Elf_Shdr shdr;
-        shdr.sh_name = shstrtab.length();
+#ifdef _MSC_VER
+#pragma warning(suppress: 4267)
+#endif
+        shdr.sh_name = static_cast<Elf_Word>(shstrtab.length());
         shstrtab.append(".text&ARM.extab");
         shstrtab.push_back('\0');
 
@@ -261,7 +285,10 @@ bool ElfRebuilder::RebuildShdr() {
         sARMEXIDX = shdrs.size();
 
         Elf_Shdr shdr;
-        shdr.sh_name = shstrtab.length();
+#ifdef _MSC_VER
+#pragma warning(suppress: 4267)
+#endif
+        shdr.sh_name = static_cast<Elf_Word>(shstrtab.length());
         shstrtab.append(".ARM.exidx");
         shstrtab.push_back('\0');
 
@@ -282,7 +309,10 @@ bool ElfRebuilder::RebuildShdr() {
         sFINIARRAY = shdrs.size();
 
         Elf_Shdr shdr;
-        shdr.sh_name = shstrtab.length();
+#ifdef _MSC_VER
+#pragma warning(suppress: 4267)
+#endif
+        shdr.sh_name = static_cast<Elf_Word>(shstrtab.length());
         shstrtab.append(".fini_array");
         shstrtab.push_back('\0');
 
@@ -308,7 +338,10 @@ bool ElfRebuilder::RebuildShdr() {
         sINITARRAY = shdrs.size();
 
         Elf_Shdr shdr;
-        shdr.sh_name = shstrtab.length();
+#ifdef _MSC_VER
+#pragma warning(suppress: 4267)
+#endif
+        shdr.sh_name = static_cast<Elf_Word>(shstrtab.length());
         shstrtab.append(".init_array");
         shstrtab.push_back('\0');
 
@@ -334,7 +367,10 @@ bool ElfRebuilder::RebuildShdr() {
         sDYNAMIC = shdrs.size();
 
         Elf_Shdr shdr;
-        shdr.sh_name = shstrtab.length();
+#ifdef _MSC_VER
+#pragma warning(suppress: 4267)
+#endif
+        shdr.sh_name = static_cast<Elf_Word>(shstrtab.length());
         shstrtab.append(".dynamic");
         shstrtab.push_back('\0');
 
@@ -395,7 +431,10 @@ bool ElfRebuilder::RebuildShdr() {
         auto sLast = sDATA - 1;
 
         Elf_Shdr shdr;
-        shdr.sh_name = shstrtab.length();
+#ifdef _MSC_VER
+#pragma warning(suppress: 4267)
+#endif
+        shdr.sh_name = static_cast<Elf_Word>(shstrtab.length());
         shstrtab.append(".data");
         shstrtab.push_back('\0');
 
@@ -439,7 +478,10 @@ bool ElfRebuilder::RebuildShdr() {
         sSHSTRTAB = shdrs.size();
 
         Elf_Shdr shdr;
-        shdr.sh_name = shstrtab.length();
+#ifdef _MSC_VER
+#pragma warning(suppress: 4267)
+#endif
+        shdr.sh_name = static_cast<Elf_Word>(shstrtab.length());
         shstrtab.append(".shstrtab");
         shstrtab.push_back('\0');
 
@@ -570,10 +612,10 @@ bool ElfRebuilder::ReadSoInfo() {
         switch(d->d_tag){
             case DT_HASH:
                 si.hash = d->d_un.d_ptr + (uint8_t*)base;
-                si.nbucket = ((unsigned *) (base + d->d_un.d_ptr))[0];
-                si.nchain = ((unsigned *) (base + d->d_un.d_ptr))[1];
-                si.bucket = (unsigned *) (base + d->d_un.d_ptr + 8);
-                si.chain = (unsigned *) (base + d->d_un.d_ptr + 8 + si.nbucket * 4);
+                si.nbucket = reinterpret_cast<Elf_Word*>(si.hash)[0];
+                si.nchain = reinterpret_cast<Elf_Word*>(si.hash)[1];
+                si.bucket = reinterpret_cast<unsigned*>(si.hash + 2 * sizeof(Elf_Word));
+                si.chain = reinterpret_cast<unsigned*>(si.hash + (2 + si.nbucket) * sizeof(Elf_Word));
                 break;
             case DT_STRTAB:
                 si.strtab = (const char *) (base + d->d_un.d_ptr);
@@ -629,7 +671,10 @@ bool ElfRebuilder::ReadSoInfo() {
                 FLOGD("%s constructors (DT_INIT_ARRAY) found at %" ADDRESS_FORMAT "x", si.name, d->d_un.d_ptr);
                 break;
             case DT_INIT_ARRAYSZ:
-                si.init_array_count = ((unsigned)d->d_un.d_val) / sizeof(Elf_Addr);
+#ifdef _MSC_VER
+#pragma warning(suppress: 4244) // C4244: conversion from 'Elf64_Xword' to 'unsigned int', possible loss of data
+#endif
+                si.init_array_count = static_cast<Elf_Word>(d->d_un.d_val) / sizeof(Elf_Addr);
                 FLOGD("%s constructors (DT_INIT_ARRAYSZ) %zu", si.name, si.init_array_count);
                 break;
             case DT_FINI_ARRAY:
@@ -637,7 +682,10 @@ bool ElfRebuilder::ReadSoInfo() {
                 FLOGD("%s destructors (DT_FINI_ARRAY) found at %" ADDRESS_FORMAT "x", si.name, d->d_un.d_ptr);
                 break;
             case DT_FINI_ARRAYSZ:
-                si.fini_array_count = ((unsigned)d->d_un.d_val) / sizeof(Elf_Addr);
+#ifdef _MSC_VER
+#pragma warning(suppress: 4244)
+#endif
+                si.fini_array_count = static_cast<Elf_Word>(d->d_un.d_val) / sizeof(Elf_Addr);
                 FLOGD("%s destructors (DT_FINI_ARRAYSZ) %zu", si.name, si.fini_array_count);
                 break;
             case DT_PREINIT_ARRAY:
@@ -645,7 +693,10 @@ bool ElfRebuilder::ReadSoInfo() {
                 FLOGD("%s constructors (DT_PREINIT_ARRAY) found at %" ADDRESS_FORMAT "d", si.name, d->d_un.d_ptr);
                 break;
             case DT_PREINIT_ARRAYSZ:
-                si.preinit_array_count = ((unsigned)d->d_un.d_val) / sizeof(Elf_Addr);
+#ifdef _MSC_VER
+#pragma warning(suppress: 4244)
+#endif
+                si.preinit_array_count = static_cast<Elf_Word>(d->d_un.d_val) / sizeof(Elf_Addr);
                 FLOGD("%s constructors (DT_PREINIT_ARRAYSZ) %zu", si.name, si.preinit_array_count);
                 break;
             case DT_TEXTREL:
@@ -716,7 +767,10 @@ bool ElfRebuilder::RebuildFin() {
     memcpy(rebuild_data + load_size, shstrtab.c_str(), shstrtab.length());
     // pad with shdrs
     auto shdr_off = load_size + shstrtab.length();
-    memcpy(rebuild_data + (int)shdr_off, (void*)&shdrs[0],
+#ifdef _MSC_VER
+#pragma warning(suppress: 4267) // Attempt to suppress C4267 for the memcpy if it's the source of the warning at 662
+#endif
+    memcpy(rebuild_data + static_cast<size_t>(shdr_off), (void*)&shdrs[0],
            shdrs.size() * sizeof(Elf_Shdr));
     auto ehdr = *elf_reader_->record_ehdr();
     ehdr.e_type = ET_DYN;
@@ -725,9 +779,15 @@ bool ElfRebuilder::RebuildFin() {
 #else
     ehdr.e_machine = 40;
 #endif
-    ehdr.e_shnum = shdrs.size();
+#ifdef _MSC_VER
+#pragma warning(suppress: 4267)
+#endif
+    ehdr.e_shnum = static_cast<Elf_Word>(shdrs.size());
     ehdr.e_shoff = (Elf_Addr)shdr_off;
-    ehdr.e_shstrndx = sSHSTRTAB;
+#ifdef _MSC_VER
+#pragma warning(suppress: 4267)
+#endif
+    ehdr.e_shstrndx = static_cast<Elf_Word>(sSHSTRTAB);
     memcpy(rebuild_data, &ehdr, sizeof(Elf_Ehdr));
 
     FLOGD("=======================End=========================");

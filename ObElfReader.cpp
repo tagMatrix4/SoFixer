@@ -23,7 +23,7 @@ void ObElfReader::FixDumpSoPhdr() {
                       return first->p_vaddr < second->p_vaddr;
                   });
         if (!loaded_phdrs.empty()) {
-            for (unsigned long i = 0, total = loaded_phdrs.size(); i < total; i++) {
+            for (size_t i = 0, total = loaded_phdrs.size(); i < total; i++) {
                 auto phdr = loaded_phdrs[i];
                 if (i != total - 1) {
                     // to next loaded segament
@@ -55,7 +55,7 @@ bool ObElfReader::Load() {
     FixDumpSoPhdr();
 
     bool has_base_dynamic_info = false;
-    uint32_t base_dynamic_size = 0;
+    size_t base_dynamic_size = 0;
     if (!haveDynamicSectionInLoadableSegment()) {
         // try to get dynamic information from base so file.
         // TODO fix bug in dynamic section rebuild.
@@ -69,7 +69,7 @@ bool ObElfReader::Load() {
               "argument baseso will be ignored.");
     }
 
-    if (!ReserveAddressSpace(base_dynamic_size) ||
+    if (!ReserveAddressSpace(static_cast<uint32_t>(base_dynamic_size)) ||
         !LoadSegments() ||
         !FindPhdr()) {
         return false;
@@ -143,7 +143,7 @@ void ObElfReader::ApplyDynamicSection() {
     if (dynamic_sections_ == nullptr)
         return;
     uint8_t * wbuf_start = load_start_ + load_size_;
-    uint32_t dynamic_size = dynamic_count_ * sizeof(Elf_Dyn);
+    size_t dynamic_size = dynamic_count_ * sizeof(Elf_Dyn);
     if (pad_size_ < dynamic_size)
         return;
     // copy directly
