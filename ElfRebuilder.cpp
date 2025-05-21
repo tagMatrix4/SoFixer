@@ -19,6 +19,7 @@
 
 ElfRebuilder::ElfRebuilder(ObElfReader *elf_reader) {
     elf_reader_ = elf_reader;
+    loaded_modules_map_ptr = &(elf_reader_->GetLoadedModulesMap()); // Get pointer to the map
 }
 
 bool ElfRebuilder::RebuildPhdr() {
@@ -592,6 +593,14 @@ bool ElfRebuilder::ReadSoInfo() {
     si.base = si.load_bias = elf_reader_->load_bias();
     si.phdr = elf_reader_->loaded_phdr();
     si.phnum = elf_reader_->phdr_count();
+
+    // Ensure dump_so_base is set correctly if it was auto-inferred
+    // This value is critical for subsequent relocations.
+    // ObElfReader::Load should have already set this if possible.
+    if (elf_reader_->dump_so_base_ == 0) {
+        FLOGW("In ElfRebuilder::ReadSoInfo, elf_reader_->dump_so_base_ is 0. This might indicate an issue with base address determination.");
+    }
+
     auto base = si.load_bias;
     phdr_table_get_load_size(si.phdr, si.phnum, &si.min_load, &si.max_load);
     si.max_load += elf_reader_->pad_size_;
@@ -674,7 +683,7 @@ bool ElfRebuilder::ReadSoInfo() {
 #ifdef _MSC_VER
 #pragma warning(suppress: 4244) // C4244: conversion from 'Elf64_Xword' to 'unsigned int', possible loss of data
 #endif
-                si.init_array_count = static_cast<Elf_Word>(d->d_un.d_val) / sizeof(Elf_Addr);
+                si.init_array_count = static_cast<size_t>(d->d_un.d_val) / sizeof(Elf_Addr);
                 FLOGD("%s constructors (DT_INIT_ARRAYSZ) %zu", si.name, si.init_array_count);
                 break;
             case DT_FINI_ARRAY:
@@ -685,7 +694,7 @@ bool ElfRebuilder::ReadSoInfo() {
 #ifdef _MSC_VER
 #pragma warning(suppress: 4244)
 #endif
-                si.fini_array_count = static_cast<Elf_Word>(d->d_un.d_val) / sizeof(Elf_Addr);
+                si.fini_array_count = static_cast<size_t>(d->d_un.d_val) / sizeof(Elf_Addr);
                 FLOGD("%s destructors (DT_FINI_ARRAYSZ) %zu", si.name, si.fini_array_count);
                 break;
             case DT_PREINIT_ARRAY:
@@ -696,7 +705,7 @@ bool ElfRebuilder::ReadSoInfo() {
 #ifdef _MSC_VER
 #pragma warning(suppress: 4244)
 #endif
-                si.preinit_array_count = static_cast<Elf_Word>(d->d_un.d_val) / sizeof(Elf_Addr);
+                si.preinit_array_count = static_cast<size_t>(d->d_un.d_val) / sizeof(Elf_Addr);
                 FLOGD("%s constructors (DT_PREINIT_ARRAYSZ) %zu", si.name, si.preinit_array_count);
                 break;
             case DT_TEXTREL:

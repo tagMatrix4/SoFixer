@@ -12,6 +12,7 @@
 #include <cstdint>
 #include <vector>
 #include <string>
+#include <map>
 #include "ObElfReader.h"
 
 
@@ -107,6 +108,7 @@ private:
   void relocate(uint8_t * base, Elf_Rel* rel, Elf_Addr dump_base);
     ObElfReader* elf_reader_;
     soinfo si;
+    const std::map<std::string, Elf_Addr>* loaded_modules_map_ptr;
 
     size_t rebuild_size = 0;
     uint8_t * rebuild_data = nullptr;

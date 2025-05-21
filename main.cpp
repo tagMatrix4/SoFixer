@@ -30,7 +30,7 @@ bool main_loop(int argc, char* argv[]) {
 
     ObElfReader elf_reader;
 
-    std::string source, output, baseso;
+    std::string source, output, baseso, modules_info_file;
     // getopt is not available on Windows, so we'll have to manually parse or use a different method
     // For now, let's assume fixed arguments or implement a simple parser if necessary.
     // The original getopt loop is commented out.
@@ -113,6 +113,8 @@ bool main_loop(int argc, char* argv[]) {
             auto base_addr = strtoull(mem_arg, nullptr, is16Bit(mem_arg) ? 16: 10);
 #endif
             elf_reader.setDumpSoBaseAddr(base_addr);
+        } else if ((arg == "-l" || arg == "--modules-info") && i + 1 < argc) {
+            modules_info_file = argv[++i];
         } else if (arg == "-d" || arg == "--debug") {
              FLOGI("Use debug mode");
         } else if (arg == "-h" || arg == "--help") {
@@ -148,6 +150,9 @@ bool main_loop(int argc, char* argv[]) {
     }
     if (!baseso.empty()) {
         elf_reader.setBaseSoName(baseso.c_str());
+    }
+    if (!modules_info_file.empty()) {
+        elf_reader.SetModulesInfoPath(modules_info_file);
     }
 
     if(!elf_reader.Load()) {
@@ -196,4 +201,5 @@ void useage() {
     FLOGI("  -b --baseso baseFilePath                   Original so file path.(used to get base information)(experimental)");
     FLOGI("  -o --output generateFilePath               Generate file path");
     FLOGI("  -h --help                                  Display this information");
+    FLOGI("  -l --modules-info modulesInfoFilePath      Path to the loaded_modules_info.txt file");
 }

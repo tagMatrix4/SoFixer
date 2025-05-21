@@ -8,6 +8,9 @@
 
 #include <vector>
 #include <algorithm>
+#include <fstream>      // For std::ifstream
+#include <sstream>      // For std::stringstream
+#include <string>       // For std::string related functions like getline, find, substr, stoull
 
 void ObElfReader::FixDumpSoPhdr() {
     // some shell will release data between loadable phdr(s), just load all memory data
@@ -48,10 +51,116 @@ void ObElfReader::FixDumpSoPhdr() {
     }
 }
 
+bool ObElfReader::ParseModulesInfo() {
+    if (modules_info_path_.empty()) {
+        FLOGD("Modules info path is not set. Skipping parsing.");
+        return true; // Not an error if path is not provided
+    }
+
+    std::ifstream info_file(modules_info_path_);
+    if (!info_file.is_open()) {
+        FLOGE("Failed to open modules info file: %s", modules_info_path_.c_str());
+        return false;
+    }
+
+    FLOGI("Parsing modules info file: %s", modules_info_path_.c_str());
+    std::string line;
+    // Skip header line
+    if (std::getline(info_file, line) && line.rfind("#", 0) != 0) {
+        // If the first line is not a comment, reset to read it as data
+        info_file.clear();
+        info_file.seekg(0);
+    } else if (line.rfind("#", 0) == 0) {
+        FLOGD("Skipped header line: %s", line.c_str());
+    } else if (info_file.eof()){
+        FLOGW("Modules info file is empty or contains only a header that was consumed by getline: %s", modules_info_path_.c_str());
+        return true; // Empty file after header is not an error for parsing itself.
+    }
+
+    while (std::getline(info_file, line)) {
+        if (line.empty() || line[0] == '#') { // Skip empty lines or comments
+            continue;
+        }
+        std::stringstream ss(line);
+        std::string module_name_str;
+        std::string load_address_str;
+
+        if (std::getline(ss, module_name_str, ',') && std::getline(ss, load_address_str)) {
+            try {
+                Elf_Addr load_address = std::stoull(load_address_str, nullptr, 16);
+                loaded_modules_map_[module_name_str] = load_address;
+                FLOGD("Loaded module from info: %s -> 0x%llx", module_name_str.c_str(), load_address);
+            } catch (const std::invalid_argument& ia) {
+                (void)ia; // Mark as used
+                FLOGE("Invalid address format in modules info file for %s: %s. Line: %s", module_name_str.c_str(), load_address_str.c_str(), line.c_str());
+            } catch (const std::out_of_range& oor) {
+                (void)oor; // Mark as used
+                FLOGE("Address out of range in modules info file for %s: %s. Line: %s", module_name_str.c_str(), load_address_str.c_str(), line.c_str());
+            }
+        } else {
+            FLOGW("Malformed line in modules info file: %s", line.c_str());
+        }
+    }
+
+    if (info_file.bad()) {
+        FLOGE("Error reading modules info file: %s", modules_info_path_.c_str());
+        return false;
+    }
+    FLOGI("Finished parsing modules info. Loaded %zu entries.", loaded_modules_map_.size());
+    return true;
+}
+
 bool ObElfReader::Load() {
     // try open
-    if (!ReadElfHeader() || !VerifyElfHeader() || !ReadProgramHeader())
+    if (!ReadElfHeader() || !VerifyElfHeader() || !ReadProgramHeader()) {
+        FLOGE("Failed basic ELF header processing.");
         return false;
+    }
+
+    if (!ParseModulesInfo()) { // Parse modules info early
+        FLOGE("Failed to parse modules info file.");
+        // Decide if this is a fatal error. For now, let's continue but log it.
+    }
+
+    // Attempt to determine dump_so_base_ if not set by user
+    if (dump_so_base_ == 0 && name_ != nullptr && !loaded_modules_map_.empty()) {
+        std::string current_so_name = name_;
+        size_t last_slash = current_so_name.find_last_of("/\\");
+        if (last_slash != std::string::npos) {
+            current_so_name = current_so_name.substr(last_slash + 1);
+        }
+        // Remove "dump_" prefix if it exists from the Java side
+        if (current_so_name.rfind("dump_", 0) == 0) {
+            current_so_name = current_so_name.substr(5);
+        }
+
+        auto it = loaded_modules_map_.find(current_so_name);
+        if (it != loaded_modules_map_.end()) {
+            dump_so_base_ = it->second;
+            FLOGI("Automatically determined dump_so_base_ for %s from modules info: 0x%llx", 
+                  current_so_name.c_str(), dump_so_base_);
+        } else {
+            FLOGW("Could not find base address for %s in modules info. Dump base remains 0.", 
+                  current_so_name.c_str());
+            // Try to find it with "dump_" prefix if it wasn't removed properly before, or if that was the name in the file
+            std::string prefixed_name = "dump_" + current_so_name;
+            it = loaded_modules_map_.find(prefixed_name);
+            if (it != loaded_modules_map_.end()){
+                 dump_so_base_ = it->second;
+                 FLOGI("Automatically determined dump_so_base_ for %s (as %s) from modules info: 0x%llx", 
+                     current_so_name.c_str(), prefixed_name.c_str(), dump_so_base_);
+            } else {
+                 FLOGW("Still could not find base address for %s or %s in modules info. Dump base remains 0.", 
+                     current_so_name.c_str(), prefixed_name.c_str());
+            }
+        }
+    }
+    if (dump_so_base_ == 0) {
+         FLOGW("dump_so_base_ is 0. Relocations for the main SO might not be fully correct unless it was loaded at 0 by chance.");
+    } else {
+         FLOGI("Using dump_so_base_: 0x%llx for relocations.", dump_so_base_);
+    }
+
     FixDumpSoPhdr();
 
     bool has_base_dynamic_info = false;
@@ -107,6 +216,7 @@ ObElfReader::~ObElfReader() {
 
 bool ObElfReader::LoadDynamicSectionFromBaseSource() {
     if (baseso_ == nullptr) {
+        FLOGD("Base SO name is not set. Cannot load dynamic section from base source.");
         return false;
     }
     ElfReader base_reader;

@@ -8,6 +8,9 @@
 #define SOFIXER_OBELFREADER_H
 
 #include "ElfReader.h"
+#include <string> // Required for std::string
+#include <map>    // Required for std::map
+
 class ElfRebuilder;
 
 class ObElfReader: public ElfReader {
@@ -26,11 +29,20 @@ public:
         baseso_ = name;
     }
 
+    void SetModulesInfoPath(const std::string& path) { // New setter
+        modules_info_path_ = path;
+    }
+
 //    void GetDynamicSection(Elf_Dyn** dynamic, size_t* dynamic_count, Elf_Word* dynamic_flags) override;
     bool haveDynamicSectionInLoadableSegment();
 
+    const std::map<std::string, Elf_Addr>& GetLoadedModulesMap() const { // Getter for ElfRebuilder
+        return loaded_modules_map_;
+    }
+
 private:
     void ApplyDynamicSection();
+    bool ParseModulesInfo(); // New private method
 
     Elf_Addr dump_so_base_ = 0;
 
@@ -39,6 +51,9 @@ private:
     void* dynamic_sections_ = nullptr;
     size_t dynamic_count_ = 0;
     Elf_Word dynamic_flags_ = 0;
+
+    std::string modules_info_path_; // New member
+    std::map<std::string, Elf_Addr> loaded_modules_map_; // New member
 
     friend class ElfRebuilder;
 
